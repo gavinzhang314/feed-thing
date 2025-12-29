@@ -1,0 +1,21 @@
+table {
+    background-color: #DDDDDD;
+}
+
+#title {
+    font-weight: bold;
+    margin-top: 0.3em;
+}
+
+.td-feed {
+    margin-left: 0px;
+    min-width: 100px;
+}
+
+.already-subscribed {
+    font-style: oblique;
+}
+
+body {
+    margin: 12px;
+}

@@ -1,0 +1,28 @@
+:root {
+    --main-text-color: #000000;
+    --secondary-text-color: #8c8c8c;
+    --small-font-size: 0.8em;
+    --title-hover: var(--secondary-text-color);
+}
+
+html {
+    font-family: Arial, serif;
+    font-size: 14px;
+}
+
+body {
+    margin: 24px;
+}
+
+a:visited, a:link, a:active {
+    color: var(--main-text-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--title-hover);
+}
+
+.icon {
+    height: 1em;
+}

@@ -1,0 +1,1 @@
+All icons in `icons/` except for `icon.svg` taken from [Iconoir](iconoir.com) and licensed under the MIT license.

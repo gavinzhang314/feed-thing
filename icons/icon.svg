@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<g class="drawing-elements">
+		<rect width="128" height="128" fill="#1074b2" rx="27" />
+		<!--path d="M 24 104 L 24 80 L 48 104 L 64 104 L 24 64 L 24 40 L 88 104 L 104 104 L 24 24 L 48 24 L 104 80" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="1"/-->
+		<line x1="25" y1="77" x2="51" y2="103" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="1" />
+		<line x1="25" y1="51" x2="77" y2="103" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="1" />
+		<line x1="25" y1="25" x2="103" y2="103" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="1" />
+
+	</g>
+</svg>

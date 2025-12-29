@@ -1,0 +1,28 @@
+.feed-item {
+    margin-top: 1em;
+}
+
+.channel-title {
+    /* font-variant: small-caps; */
+    font-size: var(--small-font-size);
+    color: var(--secondary-text-color);
+}
+
+.pubdate {
+    font-size: var(--small-font-size);
+    float: right;
+    color: var(--secondary-text-color);
+}
+
+.title {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.creator {
+    font-style: italic;
+}
+
+.description {
+    margin-top: 0.4em;
+}

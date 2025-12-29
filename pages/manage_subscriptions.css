@@ -1,0 +1,25 @@
+body {
+    margin-left: max(20px, 30%);
+    margin-right: max(20px, 30%);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.td-feed {
+    width: 100%;
+}
+
+input {
+    width: 100%;
+}
+
+.td-buttons {
+    white-space: nowrap;
+}
+
+.dark-bg {
+    background-color: #DDDDDD;
+}
