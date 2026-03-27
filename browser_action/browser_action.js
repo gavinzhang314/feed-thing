@@ -1,6 +1,6 @@
 "use strict";
 
-import { queryChannel, setChannel } from "../lib.js";
+import { Channel, queryChannel, setChannel } from "../lib.js";
 const parser = new DOMParser();
 
 let table = document.querySelector("table");
@@ -18,28 +18,6 @@ document.getElementById("manage-subscriptions").addEventListener("click", e => {
 })
 
 /**
- * Return the source of the webpage that is currently active in the current window.
- * N.B. this is done by fetching the URL of this webpage, meaning that any changes
- * in the source of the webpage after loading, e.g. from JavaScript, will not be
- * reflected by the return value. For our purposes, this shouldn't matter, since
- * the link tags of almost all webpages will not be changed after loading the webpage.
- * I think it is safe to assume so, at least.
- * 
- * @return {Promise<string>} a Promise resolving to the source of current webpage
- */
-async function getCurrWebpageSource() {
-    let currTab = await browser.tabs.query({active: true, currentWindow: true});
-
-    console.assert(currTab.length === 1, currTab);
-    if (currTab[0].url.indexOf("http") !== 0) {
-        return "";
-    } else {
-        let response = await fetch(currTab[0].url);
-        return await response.text();
-    }
-}
-
-/**
  * Clear all entries from table.
  */
 function clearTable() {
@@ -47,6 +25,7 @@ function clearTable() {
         table.removeChild(child);
 }
 
+// TODO: Move to Channel class?
 /**
  * Create a table row corresponding to the RSS channel at the provided URL.
  * 
@@ -54,13 +33,9 @@ function clearTable() {
  * @return {Promise<Element>} a Promise resolving to a DOM element containing the table row
  */
 async function channelUrlToTableRow(url) {
-    let response = await fetch(url);
-    let text = await response.text();
-    
-    let channelDOM = parser.parseFromString(text, "text/xml");
-    let channelElement = channelDOM.getElementsByTagName("channel")[0];
-    let titleTag = Array.from(channelElement.children).find(c => c.tagName === "title");
-    let title = titleTag.textContent;
+    console.log(url);
+
+    let title = (await Channel.getFeedFromUrl(url)).title;
 
     let tableRow = document.createElement("tr");
 
@@ -75,7 +50,7 @@ async function channelUrlToTableRow(url) {
         tdFeed.append(document.createTextNode(title));
         let addButton = document.createElement("button");
         addButton.setAttribute("type", "button");
-        addButton.setAttribute("title", "Subscribe to this RSS feed");
+        addButton.setAttribute("title", "Subscribe to this feed");
         addButton.append(document.createTextNode("+"));
         addButton.addEventListener("click", e => {
             tdFeed.removeChild(tdFeed.firstChild);
@@ -123,8 +98,17 @@ async function channelUrlToTableRow(url) {
  * displayed in the browser action popup.
  */
 async function createTable() {
-    
-    let text = await getCurrWebpageSource();
+    let text = "";
+    let currTab = (await browser.tabs.query({active: true, currentWindow: true}))[0];
+    let currUrl = currTab.url;
+
+    // TODO: optimize by skipping steps if text remains empty
+    if (currUrl.indexOf("http") == 0) {
+        // Hopefully <link>s to RSS feeds don't get while the browser loads the website.
+        // I think that that is a reasonable assumption to make.
+        let response = await fetch(currUrl);
+        text = await response.text();
+    }
     
     let currPageDOM = parser.parseFromString(text, "text/html");
     let links = currPageDOM.getElementsByTagName("link");
@@ -137,7 +121,7 @@ async function createTable() {
     }
     
     if (channelUrls.length == 0) {
-        document.getElementById("message").textContent = "No RSS feeds found.";
+        document.getElementById("message").textContent = "No feeds found.";
     } else {
         document.getElementById("message").setAttribute("hidden", "");
     }

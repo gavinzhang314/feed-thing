@@ -122,3 +122,223 @@ export async function removeChannel(o) {
     await setChannelList(remaining);
     return matches;
 }
+
+function shortDateString(d) {
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear() % 100}`;
+}
+
+/**
+ * An item in the aggregate feed.
+ */
+export class FeedItem {
+    /**
+     * Create a new FeedItem with all properties set to null.
+     */
+    constructor() {
+        this.title = null;
+        this.url = null;
+        this.description = "";
+        this.pubDate = null;
+        this.creator = null;
+        this.channelTitle = null;
+    }
+
+    /**
+     * Create a FeedItem that represents the given RSS channel item.
+     * 
+     * @param {Element} itemElement the element in the DOM document for the RSS
+     * channel
+     * @returns a FeedItem containing the same information, with the channelTitle
+     * property set to null
+     */
+    static parseRSSItem(itemElement) {
+        let res = new FeedItem();
+        for (const child of itemElement.children) {
+            switch (child.tagName.toLowerCase()) {
+                case "title":
+                    res.title = child.textContent;
+                    break;
+
+                case "link":
+                    res.url = child.textContent;
+                    break;
+
+                case "description":
+                    res.description = child.textContent;
+                    break;
+
+                case "pubdate":
+                    res.pubDate = new Date(child.textContent);
+                    break;
+                
+                case "dc:creator":
+                    res.creator = child.textContent;
+
+                default:
+                    break;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Create a FeedItem that represents the given Atom channel item.
+     * 
+     * @param {Element} itemElement the element in the DOM document for the RSS
+     * channel
+     * @returns a FeedItem containing the same information, with the channelTitle
+     * property set to null
+     */
+    static parseAtomItem(itemElement) {
+        let res = new FeedItem();
+        for (const child of itemElement.children) {
+            switch (child.tagName.toLowerCase()) {
+                case "title":
+                    res.title = child.textContent;
+                    break;
+
+                case "link":
+                    res.url = child.getAttribute("href");
+                    break;
+
+                case "summary":
+                    res.description = child.textContent;
+                    break;
+
+                case "published":
+                    res.pubDate = new Date(child.textContent);
+                    break;
+                
+                case "author":
+                    let authorNameItemTags = child.getElementsByTagName("name");
+                    if (authorNameItemTags.length > 0)
+                        res.creator = authorNameItemTags[0].textContent;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Creates a DOM element for this FeedItem, to be displayed in the sidebar.
+     * @returns {Element} 
+     */
+    toHTMLElement () {
+        let element = document.createElement("div");
+        element.classList.add("feed-item");
+
+        let pubDateElement = document.createElement("div");
+        pubDateElement.classList.add("pubdate");
+        pubDateElement.append(document.createTextNode(shortDateString(this.pubDate)));
+        element.append(pubDateElement);
+
+        let channelTitleElement = document.createElement("div");
+        channelTitleElement.classList.add("channel-title");
+        channelTitleElement.append(document.createTextNode(this.channelTitle));
+        element.append(channelTitleElement);
+
+        let titleElement = document.createElement("div");
+        titleElement.classList.add("title");
+        let linkElement = document.createElement("a");
+        linkElement.setAttribute("href", this.url);
+        linkElement.append(document.createTextNode(this.title));
+        titleElement.append(linkElement);
+        element.append(titleElement);
+
+        let creatorElement = document.createElement("div");
+        creatorElement.classList.add("creator");
+        creatorElement.append(document.createTextNode(this.creator));
+        element.append(creatorElement);
+
+
+        let descriptionElement = document.createElement("div");
+        descriptionElement.classList.add("description");
+        descriptionElement.append(document.createTextNode(this.description));
+        element.append(descriptionElement);
+
+        return element;
+    }
+}
+
+export class Channel {
+    /**
+     * Create a new Channel with null title and no items.
+     */
+    constructor() {
+        this.title = null;
+        this.channelType = null;
+        this.items = [];
+    }
+
+    /**
+     * Fetch and parse the feed at the given URL.
+     * 
+     * @param {*} url 
+     * @returns {Promise<Channel>}
+     */
+
+    static async getFeedFromUrl(url) {
+        let channel = new Channel();
+        const parser = new DOMParser();
+
+        let response;
+        try {
+            response = await fetch(url);
+            console.log("Success!");
+        } catch (e) {
+            console.log(url + ": Potential CORS issue");
+            console.error(e);
+            return [];
+        }
+        let rawXML = await response.text();
+        console.log(rawXML);
+
+        let parsedXML = parser.parseFromString(rawXML, "text/xml");
+        console.log(parsedXML.documentElement.tagName);
+
+        if (parsedXML.documentElement.tagName == "feed") {
+            channel.channelType = "atom";
+            let feedElement = parsedXML.documentElement;
+
+            for (const child of feedElement.children) {
+                console.log(child.tagName);
+                switch (child.tagName) {
+                    case "title":
+                        channel.title = child.textContent;
+                        break;
+                
+                    case "entry":
+                        let newItem = FeedItem.parseAtomItem(child);
+                        newItem.channelTitle = channel.title;
+                        channel.items.push(newItem);
+
+                    default:
+                        break;
+                }
+            }
+            return channel;
+        } else {
+            channel.channelType = "rss";
+            let channelItem = parsedXML.getElementsByTagName("channel")[0];
+            for (const child of channelItem.children) {
+                switch (child.tagName) {
+                    case "title":
+                        channel.title = child.textContent;
+                        break;
+                
+                    case "item":
+                        var newItem = FeedItem.parseRSSItem(child);
+                        newItem.channelTitle = channel.title;
+                        channel.items.push(newItem);
+
+                    default:
+                        break;
+                }
+            }
+            return channel;
+        }
+    }
+}
